@@ -8,6 +8,19 @@ fn calculate_crc(data: &[u8]) -> u8 {
     simple_crc8(data, 0x31, 0xFF, false, false, 0x00)
 }
 
+fn f32_to_fixed_point(value: f32) -> Option<u16> {
+    const MULTIPLE: f32 = 1.0 / 256.0;
+
+    let integer_part: u16 = value as u16;
+    let fractional_part: u16 = ((value - integer_part as f32) / MULTIPLE) as u16;
+
+    if integer_part > 0xFF || fractional_part > 0xFF {
+        return None;
+    }
+
+    Some((integer_part << 8) | fractional_part)
+}
+
 #[test]
 fn test_feature_set_good() {
     let expectations = vec![
@@ -290,11 +303,22 @@ fn test_get_serial() {
 
 #[test]
 fn test_set_humidity() {
-    let humidity = 50u8;
+    let humidity = 15.5;
+
+    let number = match f32_to_fixed_point(humidity) {
+        None => panic!("Fixed point error"),
+        Some(n) => n.to_be_bytes(),
+    };
 
     let expectations = vec![i2c::Transaction::write(
         I2C_ADDRESS,
-        vec![0x20, 0x61, humidity, 0, calculate_crc(&[humidity, 0])],
+        vec![
+            0x20,
+            0x61,
+            number[0],
+            number[1],
+            calculate_crc(&[number[0], number[1]]),
+        ],
     )];
 
     let mock = i2c::Mock::new(&expectations);

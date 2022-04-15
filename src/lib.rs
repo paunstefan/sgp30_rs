@@ -31,6 +31,8 @@ pub enum Error<E> {
     I2c(E),
     /// Error variant for invalid CRC values.
     InvalidCrc,
+    /// Fixed point conversion out of range
+    FixedPointError,
 }
 
 impl<I, E> Sgp30<I>
@@ -235,16 +237,20 @@ where
     }
 
     /// Sets the absolute humidity value in g/m3.
-    /// Limitation: No fractional values.
     pub fn set_absolute_humidity(
         &mut self,
         delay: &mut impl delay::DelayMs<u16>,
-        humidity: u8,
+        humidity: f32,
     ) -> Result<(), Error<E>> {
+        let number = match f32_to_fixed_point(humidity) {
+            None => return Err(Error::FixedPointError),
+            Some(n) => n.to_be_bytes(),
+        };
+
         let mut buffer = [0u8; 5];
         buffer[0..2].copy_from_slice(&[0x20, 0x61]);
-        buffer[2] = humidity;
-        buffer[3] = 0;
+        buffer[2] = number[0];
+        buffer[3] = number[1];
         buffer[4] = calculate_crc(&buffer[2..4]);
         self.bus.write(I2C_ADDRESS, &buffer).map_err(Error::I2c)?;
 
@@ -322,6 +328,20 @@ fn calculate_crc(data: &[u8]) -> u8 {
     simple_crc8(data, 0x31, 0xFF, false, false, 0x00)
 }
 
+/// Convert f32 number to 8.8bit fixed point representation.
+fn f32_to_fixed_point(value: f32) -> Option<u16> {
+    const MULTIPLE: f32 = 1.0 / 256.0;
+
+    let integer_part: u16 = value as u16;
+    let fractional_part: u16 = ((value - integer_part as f32) / MULTIPLE) as u16;
+
+    if integer_part > 0xFF || fractional_part > 0xFF {
+        return None;
+    }
+
+    Some((integer_part << 8) | fractional_part)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -329,5 +349,16 @@ mod tests {
     #[test]
     fn test_crc() {
         assert_eq!(calculate_crc(&[0xBE, 0xEF]), 0x92);
+    }
+
+    #[test]
+    fn test_conversion_good() {
+        assert_eq!(f32_to_fixed_point(0.0).unwrap(), 0x0);
+        assert_eq!(f32_to_fixed_point(15.5).unwrap(), 0x0F80);
+    }
+
+    #[test]
+    fn test_conversion_bad() {
+        assert_eq!(f32_to_fixed_point(555.0), None);
     }
 }

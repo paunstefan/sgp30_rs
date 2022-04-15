@@ -14,7 +14,7 @@ Available commands:
 * `measure_iaq`: Sends the measured values to the user. Should be called at 1 second intervals after the `iaq_init` to ensure proper operation. It will return the CO2(ppm) and TVOC(ppb) 16bit values. It will return 400ppm CO2 and 0ppb TVOC for the first 15 seconds, before calibration.
 * `get_iaq_baseline`: Sends the calculated baseline values used for the compensation algorithm and they get optimized over time. Can be saved in non-volatile memory for later use if sensor gets powered off.
 * `set_iaq_baseline`: Set the baseline values used by the sensor. You should use the values read in a previous run using the `get_iaq_baseline` command.
-* `set_absolute_humidity`: The air quality measurements can get influenced by the humidity in the air, so the sensor can take that into consideration. You can send to the sensor the absolute humidity(g/m3) as an 8bit value. A current limitation of the driver is the lack of support for fractional values.
+* `set_absolute_humidity`: The air quality measurements can get influenced by the humidity in the air, so the sensor can take that into consideration. You can send to the sensor the absolute humidity(g/m3) as an 8bit value.
 * `measure_test`: Used for testing the sensor. Should return a value of `0xD400`.
 * `get_feature_set`: Returns the current sensor version a pair of product type (0 for the SGP30) and the product version.
 * `measure_raw`: Returns the raw values read by the sensor, before applying the calibration algorithms.
