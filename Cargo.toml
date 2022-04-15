@@ -1,0 +1,17 @@
+[package]
+name = "sgp30_rs"
+description = "Driver for the SGP30 sensor based on embedded-hal"
+authors = ["Stefan Paun <paunstefan@protonmail.com>"]
+keywords = ["embedded", "sensor", "co2", "embedded-hal-driver"]
+categories = ["embedded", "no-std", "hardware-support"]
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+embedded-hal = "0.2.7"
+simple_crc = { git = "https://github.com/paunstefan/simple_crc" }
+
+[dev-dependencies]
+embedded-hal-mock = "0.8.0"
