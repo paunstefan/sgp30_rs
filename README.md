@@ -37,6 +37,36 @@ Every 2 bytes read or written to the sensor should be followed by a CRC. The par
 
 ## Usage
 
+To use the sensor you must provide it with an I2C device (that implements `embedded_hal::blocking::i2c`), this will be owned by the sensor struct. There will also be a need for a delay (`embedded_hal::blocking::delay`), that will be given on each method call, to allow you to use it in other places too.
+
+### Raspberry Pi example
+
+On the Raspberry Pi you can use the `linux_embedded_hal`, that has implementations for everything you need. The I2C device is called `/dev/i2c-1` and is connected to [pins 3 and 4](https://pinout.xyz/pinout/i2c#) on the board.
+
+```rust
+use embedded_hal::prelude::*;
+use linux_embedded_hal::{Delay, I2cdev};
+use sgp30_rs::Sgp30;
+
+fn main() {
+    let mut delay = Delay;
+    let dev = I2cdev::new("/dev/i2c-1").unwrap();
+
+    let mut sensor = Sgp30::init(dev);
+
+    sensor.iaq_init(&mut delay).unwrap();
+    println!("Sensor initialized!");
+
+    loop {
+        let (co2, tvoc) = sensor.measure_iaq(&mut delay).unwrap();
+        println!("CO2: {}ppm; TVOC: {}ppb", co2, tvoc);
+        delay.delay_ms(1000u32);
+    }
+}
+```
+
+Full example crate can be found in `examples/raspberry_pi`.
+
 ### References
 
 * [Datasheet](https://sensirion.com/media/documents/984E0DD5/61644B8B/Sensirion_Gas_Sensors_Datasheet_SGP30.pdf)

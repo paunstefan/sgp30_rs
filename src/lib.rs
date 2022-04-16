@@ -1,8 +1,29 @@
 //! Generic no_std driver for the SGP30 gas sensor
 //!
 //! ## Usage:
+//!To use the sensor you must provide it with an I2C device
+//! (that implements `embedded_hal::blocking::i2c`), this will be owned
+//! by the sensor struct. There will also be a need for a delay
+//! (`embedded_hal::blocking::delay`), that will be given on each method
+//! call, to allow you to use it in other places too.
 //!
+//! Raspberry Pi example:
+//! ```ignore
+//! fn main() {
+//!     let mut delay = Delay;
+//!     let dev = I2cdev::new("/dev/i2c-1").unwrap();
 //!
+//!     let mut sensor = Sgp30::init(dev);
+//!     sensor.iaq_init(&mut delay).unwrap();
+//!     println!("Sensor initialized!");
+//!
+//!     loop {
+//!         let (co2, tvoc) = sensor.measure_iaq(&mut delay).unwrap();
+//!         println!("CO2: {}ppm; TVOC: {}ppb", co2, tvoc);
+//!         delay.delay_ms(1000u32);
+//!     }
+//! }
+//! ```
 //!
 //! ## References:
 //! * [Datasheet](https://sensirion.com/media/documents/984E0DD5/61644B8B/Sensirion_Gas_Sensors_Datasheet_SGP30.pdf)

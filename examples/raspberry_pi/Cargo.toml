@@ -1,0 +1,11 @@
+[package]
+name = "raspberry_pi"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+sgp30_rs = { path = "../.." }
+embedded-hal = "0.2.7"
+linux-embedded-hal = "0.3.2"
