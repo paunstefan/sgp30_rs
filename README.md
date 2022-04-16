@@ -1,5 +1,7 @@
 # sgp30_rs
 
+![Build and test](https://github.com/paunstefan/sgp30_rs/actions/workflows/rust.yml/badge.svg)
+
 This is a platform agnostic driver for the SGP30 sensor, using `embedded-hal` traits.
 
 SGP30 is a gas sensor that can measure CO2 and TVOC(Total Volatile Organic Compounds) concentrations in air.
